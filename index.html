@@ -49,8 +49,6 @@ a:hover{ color:var(--verde-500); }
 /* ===================================================== */
 /* ===== VENTANA DE COOKIES (AL FRENTE, PANTALLA COMPLETA) */
 /* ===================================================== */
-#aceptar, #rechazar{ position:absolute; top:-9999px; }
-
 .cookie-overlay{
   position:fixed; inset:0;
   background:rgba(10,26,13,0.82);
@@ -92,6 +90,7 @@ a:hover{ color:var(--verde-500); }
   font-weight:700; font-size:0.88rem; text-decoration:none;
   transition:all var(--trans); min-width:150px; text-align:center;
   font-family:var(--fuente-sans); letter-spacing:0.03em;
+  cursor:pointer;
 }
 .boton-cookie.aceptar{
   background:var(--verde-700); color:var(--blanco);
@@ -111,15 +110,14 @@ a:hover{ color:var(--verde-500); }
 .cookie-enlaces a{ color:var(--verde-700); font-weight:600; }
 .cookie-enlaces a:hover{ text-decoration:underline; }
 
-/* ===== LÓGICA DE VISIBILIDAD ===== */
-#aceptar:target ~ .cookie-overlay,
-#aceptar:target ~ .cookie-banner,
-#rechazar:target ~ .cookie-overlay,
-#rechazar:target ~ .cookie-banner{ display:none; }
+/* ===== LÓGICA DE VISIBILIDAD (controlada por JS) ===== */
+body.cookies-pendientes .cookie-overlay{ display:block; }
+body.cookies-pendientes .cookie-banner{ display:flex; }
+body:not(.cookies-pendientes) .cookie-overlay,
+body:not(.cookies-pendientes) .cookie-banner{ display:none; }
 
-.contenido-principal{ display:none; }
-#aceptar:target ~ .contenido-principal,
-#rechazar:target ~ .contenido-principal{
+body.cookies-pendientes .contenido-principal{ display:none; }
+body:not(.cookies-pendientes) .contenido-principal{
   display:block; animation:aparecer 0.5s ease;
 }
 @keyframes aparecer{
@@ -430,11 +428,7 @@ p:last-child{ margin-bottom:0; }
 }
 </style>
 </head>
-<body>
-
-<!-- ANCLAS PARA LA LÓGICA DE COOKIES (sin JS) -->
-<span id="aceptar"></span>
-<span id="rechazar"></span>
+<body class="cookies-pendientes">
 
 <!-- ===== VENTANA DE COOKIES AL FRENTE ===== -->
 <div class="cookie-overlay"></div>
@@ -444,8 +438,8 @@ p:last-child{ margin-bottom:0; }
     <h2 id="titulo-cookies">Aviso de cookies</h2>
     <p>Usamos cookies para mejorar tu experiencia y analizar el tráfico de forma anónima. Al aceptar, nos permites ofrecerte contenido más relevante. También puedes rechazar las cookies no esenciales.</p>
     <div class="cookie-acciones">
-      <a href="#rechazar" class="boton-cookie rechazar">Rechazar</a>
-      <a href="#aceptar" class="boton-cookie aceptar">Aceptar cookies</a>
+      <button type="button" class="boton-cookie rechazar" data-cookie="rechazar">Rechazar</button>
+      <button type="button" class="boton-cookie aceptar" data-cookie="aceptar">Aceptar cookies</button>
     </div>
     <div class="cookie-enlaces">
       <a href="privacidad.html">Política de Privacidad</a> ·
@@ -454,7 +448,7 @@ p:last-child{ margin-bottom:0; }
   </div>
 </div>
 
-<!-- ===== FRONTEND (solo visible tras decidir) ===== -->
+<!-- ===== FRONTEND (visible tras decidir) ===== -->
 <div class="contenido-principal">
 
   <header class="cabecera">
@@ -712,6 +706,25 @@ p:last-child{ margin-bottom:0; }
   </footer>
 
 </div>
+
+<!-- ===== SCRIPT DE COOKIES (sin localStorage: aparece siempre) ===== -->
+<script>
+(function () {
+  var body = document.body;
+  var botones = document.querySelectorAll('.boton-cookie');
+
+  // La clase "cookies-pendientes" ya está en el <body>, así que el modal
+  // se muestra siempre al cargar la página, sin importar visitas previas.
+
+  botones.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      // Solo ocultamos el modal en esta visita. Al recargar o volver
+      // a entrar al enlace, volverá a aparecer.
+      body.classList.remove('cookies-pendientes');
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
